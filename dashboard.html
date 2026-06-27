@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ダッシュボード – AidGrant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue:        #1B4FBF;
+      --blue-dark:   #0F3494;
+      --blue-deeper: #081F6B;
+      --blue-light:  #EBF1FD;
+      --blue-mid:    #C3D5F8;
+      --green:       #16A34A;
+      --green-dark:  #0F7A37;
+      --green-light: #DCFCE7;
+      --gold:        #D97706;
+      --gold-light:  #FEF3C7;
+      --red:         #DC2626;
+      --red-light:   #FEE2E2;
+      --text:        #0F172A;
+      --text-mid:    #334155;
+      --muted:       #64748B;
+      --muted-light: #94A3B8;
+      --surface:     #F8FAFC;
+      --surface-2:   #F1F5F9;
+      --white:       #FFFFFF;
+      --border:      #E2E8F0;
+      --border-mid:  #CBD5E1;
+      --radius-sm:   6px;
+      --radius:      10px;
+      --radius-lg:   16px;
+      --shadow-sm:   0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+      --shadow:      0 4px 16px rgba(15,23,42,.08), 0 2px 8px rgba(15,23,42,.04);
+      --shadow-lg:   0 12px 40px rgba(15,23,42,.12), 0 4px 16px rgba(15,23,42,.06);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      display: flex; flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px; flex-shrink: 0;
+      position: relative; z-index: 100;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 800; font-size: 1.15rem;
+      letter-spacing: -.02em; text-decoration: none; color: var(--text);
+    }
+    .logo-mark {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem;
+    }
+    .nav-logo .hojo { color: var(--blue); }
+    .nav-logo .link { color: var(--green); }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-info img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--green); object-fit: cover; }
+    .user-info span { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+    .btn-logout {
+      font-size: 0.8rem; color: var(--muted); font-weight: 600;
+      border: 1px solid var(--border); padding: 5px 12px;
+      border-radius: var(--radius-sm); background: none; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-logout:hover { background: var(--surface); }
+    .nav-api-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.78rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 100px;
+      cursor: pointer; transition: .15s;
+      border: none;
+    }
+    .api-status-ok { background: var(--green-light); color: var(--green-dark); }
+    .api-status-none { background: var(--gold-light); color: var(--gold); }
+    .api-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    /* ── Login gate ── */
+    #login-gate {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 20px; text-align: center; padding: 40px;
+    }
+    .login-gate-icon {
+      width: 80px; height: 80px; border-radius: 20px;
+      background: var(--blue-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+    }
+    #login-gate h2 { font-size: 1.5rem; font-weight: 900; letter-spacing: -.02em; }
+    #login-gate p { color: var(--muted); font-size: 0.9rem; max-width: 320px; line-height: 1.7; }
+    .btn-google {
+      background: var(--white); color: var(--text);
+      padding: 13px 24px; border-radius: var(--radius);
+      font-weight: 700; font-size: 0.9rem;
+      border: 1.5px solid var(--border-mid);
+      box-shadow: var(--shadow);
+      display: inline-flex; align-items: center; gap: 10px;
+      cursor: pointer; transition: box-shadow .2s, transform .2s;
+    }
+    .btn-google:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+
+    /* ── Dashboard layout ── */
+    #dashboard { flex: 1; display: flex; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 256px; background: var(--white);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 16px 12px; gap: 2px; flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .sidebar-section-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--muted-light);
+      padding: 14px 10px 6px; margin-top: 4px;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: var(--radius);
+      font-size: 0.875rem; font-weight: 500; color: var(--text-mid);
+      cursor: pointer; transition: background .12s, color .12s;
+      border: none; background: none; text-align: left; width: 100%;
+      position: relative;
+    }
+    .sidebar-item:hover { background: var(--surface); color: var(--text); }
+    .sidebar-item.active {
+      background: var(--blue-light); color: var(--blue); font-weight: 600;
+    }
+    .sidebar-item .s-icon {
+      font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0;
+    }
+    .sidebar-item .s-badge {
+      margin-left: auto; background: var(--blue); color: #fff;
+      font-size: 0.68rem; font-weight: 700;
+      padding: 1px 7px; border-radius: 100px;
+    }
+    .sidebar-item .s-new {
+      margin-left: auto; background: var(--green); color: #fff;
+      font-size: 0.65rem; font-weight: 700;
+      padding: 1px 7px; border-radius: 100px;
+    }
+    .sidebar-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+    /* Main area */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Panel system */
+    .panel { flex: 1; overflow-y: auto; display: none; flex-direction: column; }
+    .panel.active { display: flex; }
+
+    /* Chat panel */
+    .chat-topbar {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex; align-items: center; gap: 12px;
+      flex-shrink: 0;
+    }
+    .ai-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.05rem; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(27,79,191,.2);
+    }
+    .chat-topbar-info h2 { font-size: 0.9rem; font-weight: 700; }
+    .chat-topbar-info p { font-size: 0.75rem; color: var(--muted); }
+    .online-badge {
+      margin-left: auto; display: flex; align-items: center; gap: 5px;
+      background: var(--green-light); color: var(--green-dark);
+      font-size: 0.72rem; font-weight: 700;
+      padding: 4px 10px; border-radius: 100px;
+    }
+    .online-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+
+    #messages {
+      flex: 1; overflow-y: auto; padding: 24px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .msg { display: flex; gap: 10px; max-width: 80%; }
+    .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+    .msg.ai { align-self: flex-start; }
+    .msg-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; flex-shrink: 0; align-self: flex-end;
+    }
+    .msg-avatar.user-av { background: var(--green); overflow: hidden; }
+    .msg-avatar.user-av img { width: 100%; height: 100%; object-fit: cover; }
+    .bubble {
+      padding: 12px 16px; border-radius: 16px;
+      font-size: 0.875rem; line-height: 1.7;
+    }
+    .msg.ai .bubble {
+      background: var(--white); border: 1px solid var(--border);
+      border-bottom-left-radius: 4px; box-shadow: var(--shadow-sm);
+    }
+    .msg.user .bubble {
+      background: var(--blue); color: var(--white);
+      border-bottom-right-radius: 4px;
+    }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .chip {
+      background: var(--blue-light); color: var(--blue);
+      border: 1px solid var(--blue-mid);
+      padding: 5px 13px; border-radius: 100px;
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      transition: background .12s, transform .12s;
+    }
+    .chip:hover { background: var(--blue-mid); transform: translateY(-1px); }
+    .typing { display: flex; gap: 4px; align-items: center; padding: 12px 16px; }
+    .typing span {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--muted-light); animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+    .chat-input-area {
+      background: var(--white); border-top: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex; gap: 10px; align-items: flex-end;
+      flex-shrink: 0;
+    }
+    #chat-input {
+      flex: 1; border: 1.5px solid var(--border); border-radius: var(--radius);
+      padding: 11px 16px; font-size: 0.875rem; font-family: inherit;
+      resize: none; outline: none; max-height: 120px;
+      transition: border-color .2s; line-height: 1.5;
+      background: var(--surface);
+    }
+    #chat-input:focus { border-color: var(--blue); background: var(--white); }
+    #send-btn {
+      background: var(--blue); color: var(--white);
+      border: none; border-radius: var(--radius);
+      width: 42px; height: 42px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; transition: background .15s, transform .15s;
+      flex-shrink: 0;
+    }
+    #send-btn:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    #send-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+
+    /* ── Panel: Favorites ── */
+    .panel-content { padding: 32px; flex: 1; }
+    .panel-header { margin-bottom: 28px; }
+    .panel-header h2 { font-size: 1.35rem; font-weight: 900; letter-spacing: -.02em; margin-bottom: 6px; }
+    .panel-header p { color: var(--muted); font-size: 0.875rem; }
+    .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+    .fav-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 24px;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .fav-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .fav-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .fav-tag {
+      font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 100px;
+    }
+    .ft-blue { background: var(--blue-light); color: var(--blue); }
+    .ft-green { background: var(--green-light); color: var(--green-dark); }
+    .ft-gold { background: var(--gold-light); color: var(--gold); }
+    .fav-card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; }
+    .fav-card-meta { display: flex; gap: 16px; font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+    .fav-card-meta span { display: flex; align-items: center; gap: 4px; }
+    .fav-card-actions { display: flex; gap: 8px; }
+    .btn-sm {
+      font-size: 0.78rem; font-weight: 600; padding: 6px 12px;
+      border-radius: var(--radius-sm); cursor: pointer; transition: .15s;
+      border: none;
+    }
+    .btn-sm-primary { background: var(--blue); color: #fff; }
+    .btn-sm-primary:hover { background: var(--blue-dark); }
+    .btn-sm-ghost { background: var(--surface); color: var(--text-mid); border: 1px solid var(--border); }
+    .btn-sm-ghost:hover { background: var(--surface-2); }
+    .btn-sm-danger { background: var(--red-light); color: var(--red); }
+    .btn-sm-danger:hover { background: #FECACA; }
+    .fav-empty { text-align: center; padding: 80px 20px; }
+    .fav-empty-icon { font-size: 3rem; margin-bottom: 16px; }
+    .fav-empty h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .fav-empty p { color: var(--muted); font-size: 0.875rem; }
+
+    /* ── Panel: 申請管理 ── */
+    .app-table { width: 100%; border-collapse: collapse; }
+    .app-table th {
+      text-align: left; font-size: 0.72rem; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+      padding: 10px 16px; border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .app-table td {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      font-size: 0.875rem; vertical-align: middle;
+    }
+    .app-table tr:last-child td { border-bottom: none; }
+    .app-table tr:hover td { background: var(--surface); }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 100px;
+    }
+    .sb-prep { background: var(--blue-light); color: var(--blue); }
+    .sb-submitted { background: var(--gold-light); color: var(--gold); }
+    .sb-approved { background: var(--green-light); color: var(--green-dark); }
+    .sb-rejected { background: var(--red-light); color: var(--red); }
+    .sb-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .app-amount { font-weight: 700; color: var(--green-dark); }
+    .table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .app-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .app-stat {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px;
+    }
+    .app-stat-num { font-size: 1.6rem; font-weight: 900; letter-spacing: -.03em; margin-bottom: 4px; }
+    .app-stat-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
+    .color-blue { color: var(--blue); }
+    .color-gold { color: var(--gold); }
+    .color-green { color: var(--green-dark); }
+    .color-red { color: var(--red); }
+
+    /* ── Panel: 締切通知 ── */
+    .notif-list { display: flex; flex-direction: column; gap: 12px; }
+    .notif-item {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px 24px;
+      display: flex; align-items: center; gap: 16px;
+      transition: box-shadow .15s;
+    }
+    .notif-item:hover { box-shadow: var(--shadow-sm); }
+    .notif-urgency {
+      width: 8px; border-radius: 4px; align-self: stretch;
+      flex-shrink: 0;
+    }
+    .u-urgent { background: var(--red); }
+    .u-soon { background: var(--gold); }
+    .u-ok { background: var(--green); }
+    .notif-body { flex: 1; }
+    .notif-body h4 { font-size: 0.875rem; font-weight: 700; margin-bottom: 4px; }
+    .notif-body p { font-size: 0.78rem; color: var(--muted); }
+    .notif-deadline {
+      text-align: right; flex-shrink: 0;
+    }
+    .deadline-days {
+      font-size: 1.3rem; font-weight: 900; letter-spacing: -.02em;
+      line-height: 1;
+    }
+    .deadline-label { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .notif-toggle {
+      width: 36px; height: 20px; border-radius: 10px;
+      background: var(--green); cursor: pointer;
+      position: relative; border: none; flex-shrink: 0;
+      transition: background .15s;
+    }
+    .notif-toggle.off { background: var(--border); }
+    .notif-toggle::after {
+      content: '';
+      position: absolute; top: 3px; left: 3px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: white; transition: transform .2s;
+    }
+    .notif-toggle.off::after { transform: none; }
+    .notif-toggle:not(.off)::after { transform: translateX(16px); }
+    .section-actions { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+    .btn-primary-sm {
+      background: var(--blue); color: #fff;
+      font-size: 0.8rem; font-weight: 700;
+      padding: 8px 16px; border-radius: var(--radius);
+      border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;
+      transition: background .15s;
+    }
+    .btn-primary-sm:hover { background: var(--blue-dark); }
+
+    /* ── API Key Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(15,23,42,.5);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal {
+      background: var(--white); border-radius: var(--radius-lg);
+      padding: 36px; max-width: 500px; width: 100%;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(15,23,42,.06);
+      animation: modal-in .2s ease;
+    }
+    @keyframes modal-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+    .modal-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+    .modal-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--blue-light);
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+    }
+    .modal-header h2 { font-size: 1.15rem; font-weight: 900; letter-spacing: -.02em; }
+    .modal-header p { font-size: 0.8rem; color: var(--muted); }
+    .modal-steps { margin-bottom: 24px; }
+    .modal-step {
+      display: flex; gap: 12px; margin-bottom: 14px;
+      padding: 14px 16px; border: 1px solid var(--border);
+      border-radius: var(--radius); background: var(--surface);
+    }
+    .modal-step-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--blue); color: #fff;
+      font-size: 0.75rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .modal-step-body p { font-size: 0.82rem; color: var(--text-mid); line-height: 1.6; }
+    .modal-step-body a { color: var(--blue); font-weight: 600; }
+    .modal-step-body code {
+      font-size: 0.78rem; background: var(--surface-2);
+      border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px;
+      font-family: monospace;
+    }
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 7px; }
+    .input-group input {
+      width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius);
+      padding: 11px 14px; font-size: 0.875rem; font-family: inherit;
+      outline: none; transition: border-color .15s;
+      background: var(--surface);
+    }
+    .input-group input:focus { border-color: var(--blue); background: var(--white); }
+    .input-group .input-hint { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+    .modal-actions { display: flex; gap: 10px; }
+    .btn-modal-primary {
+      flex: 1; background: var(--blue); color: #fff;
+      border: none; border-radius: var(--radius);
+      padding: 12px 20px; font-size: 0.875rem; font-weight: 700;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-modal-primary:hover { background: var(--blue-dark); }
+    .btn-modal-ghost {
+      background: var(--surface); color: var(--text-mid);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px 16px; font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-modal-ghost:hover { background: var(--surface-2); }
+    .api-link-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
+      background: var(--blue-light); border: 1px solid var(--blue-mid);
+      border-radius: var(--radius); padding: 12px 16px;
+    }
+    .api-link-row p { font-size: 0.8rem; color: var(--text-mid); flex: 1; }
+    .api-link-row a {
+      white-space: nowrap; font-size: 0.8rem; font-weight: 700;
+      color: var(--blue); display: flex; align-items: center; gap: 4px;
+    }
+
+    /* ── Mobile nav ── */
+    .hamburger-btn {
+      display: none;
+      background: none; border: none; cursor: pointer;
+      padding: 6px; border-radius: var(--radius-sm);
+      color: var(--text-mid);
+      transition: background .15s;
+    }
+    .hamburger-btn:hover { background: var(--surface); }
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 199;
+      background: rgba(15,23,42,.4);
+      backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.open { display: block; }
+
+    /* ── Mobile bottom nav ── */
+    .bottom-nav {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+      gap: 0;
+    }
+    .bottom-nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 6px 4px; border-radius: var(--radius-sm);
+      font-size: 0.62rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; border: none; background: none; transition: color .15s;
+      position: relative;
+    }
+    .bottom-nav-item.active { color: var(--blue); }
+    .bottom-nav-item .bn-icon { font-size: 1.3rem; line-height: 1; }
+    .bottom-nav-badge {
+      position: absolute; top: 4px; right: calc(50% - 16px);
+      background: var(--blue); color: #fff;
+      font-size: 0.58rem; font-weight: 800;
+      min-width: 14px; height: 14px; padding: 0 3px;
+      border-radius: 100px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    @media (max-width: 640px) {
+      .sidebar { display: none; position: fixed; top: 60px; left: 0; bottom: 0; z-index: 200; width: 260px; box-shadow: var(--shadow-lg); overflow-y: auto; }
+      .sidebar.open { display: flex; }
+      .hamburger-btn { display: flex; align-items: center; }
+      .app-stats { grid-template-columns: 1fr 1fr; }
+      .panel-content { padding: 16px 16px 80px; }
+      #messages { padding: 16px 16px 80px; }
+      .bottom-nav { display: flex; }
+      .nav-api-status { font-size: 0.72rem; padding: 4px 8px; }
+      .nav-api-status span.api-status-dot { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="メニュー">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <a href="index.html" class="nav-logo">
+      <div class="logo-mark">🔗</div>
+      AidGrant
+    </a>
+  </div>
+  <div class="nav-right">
+    <button class="nav-api-status api-status-none" id="api-status-btn" onclick="openApiModal()">
+      <span class="api-status-dot"></span>
+      <span id="api-status-text">APIキー未設定</span>
+    </button>
+    <div class="user-info" id="user-info" style="display:none;">
+      <img id="user-avatar" src="" alt="" />
+      <span id="user-name"></span>
+      <button class="btn-logout" id="logout-btn">ログアウト</button>
+    </div>
+  </div>
+</nav>
+
+<!-- サイドバーオーバーレイ（モバイル） -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- ログインしていない場合 -->
+<div id="login-gate">
+  <div class="login-gate-icon">🔒</div>
+  <h2>ログインが必要です</h2>
+  <p>AidGrantのダッシュボードを使うには<br />Googleアカウントでログインしてください。</p>
+  <button class="btn-google" id="login-btn">
+    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Googleアカウントでログイン
+  </button>
+</div>
+
+<!-- ダッシュボード本体 -->
+<div id="dashboard" style="display:none;">
+
+  <!-- サイドバー -->
+  <div class="sidebar">
+    <div class="sidebar-section-label">メイン</div>
+    <button class="sidebar-item active" data-panel="chat">
+      <span class="s-icon">🤖</span> AI補助金診断
+    </button>
+    <button class="sidebar-item" data-panel="favorites">
+      <span class="s-icon">⭐</span> お気に入り
+      <span class="s-badge" id="fav-count">0</span>
+    </button>
+    <button class="sidebar-item" data-panel="applications">
+      <span class="s-icon">📋</span> 申請管理
+    </button>
+    <button class="sidebar-item" data-panel="notifications">
+      <span class="s-icon">🔔</span> 締切通知
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">設定</div>
+    <button class="sidebar-item" onclick="openApiModal()">
+      <span class="s-icon">🔑</span> APIキー設定
+    </button>
+    <button class="sidebar-item" onclick="window.location.href='index.html'">
+      <span class="s-icon">🏠</span> トップに戻る
+    </button>
+  </div>
+
+  <!-- メインエリア -->
+  <div class="main">
+
+    <!-- === チャットパネル === -->
+    <div class="panel active" id="panel-chat">
+      <div class="chat-topbar">
+        <div class="ai-avatar">🤖</div>
+        <div class="chat-topbar-info">
+          <h2>AidGrant AI アシスタント</h2>
+          <p>補助金・助成金の診断・相談ができます</p>
+        </div>
+        <div class="online-badge">
+          <span class="online-dot"></span>オンライン
+        </div>
+        <button id="clear-chat-btn" title="チャット履歴をクリア" style="margin-left:8px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;font-size:0.75rem;font-weight:600;color:var(--muted);cursor:pointer;transition:background .15s;white-space:nowrap;" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background='none'">
+          🗑 クリア
+        </button>
+      </div>
+      <div id="messages">
+        <div class="msg ai">
+          <div class="msg-avatar">🤖</div>
+          <div class="bubble">
+            こんにちは！AidGrant AIアシスタントです。<br />
+            あなたに合った補助金・助成金を一緒に探しましょう。<br /><br />
+            まず、どんな状況か教えてください👇
+            <div class="chip-row">
+              <span class="chip" onclick="sendQuick('個人事業主として開業したい')">個人事業主として開業したい</span>
+              <span class="chip" onclick="sendQuick('中小企業の設備投資をしたい')">中小企業の設備投資をしたい</span>
+              <span class="chip" onclick="sendQuick('学生・個人として支援を探したい')">学生・個人として支援を探したい</span>
+              <span class="chip" onclick="sendQuick('IT・デジタル化の補助金を探したい')">IT・デジタル化の補助金を探したい</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea id="chat-input" rows="1" placeholder="例：浜松市で飲食店を開業したいのですが…"></textarea>
+        <button id="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- === お気に入りパネル === -->
+    <div class="panel" id="panel-favorites">
+      <div class="panel-content">
+        <div class="panel-header">
+          <h2>⭐ お気に入り</h2>
+          <p>気になる補助金・助成金を保存して、いつでも確認できます。</p>
+        </div>
+        <div class="fav-grid" id="fav-grid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- === 申請管理パネル === -->
+    <div class="panel" id="panel-applications">
+      <div class="panel-content">
+        <div class="panel-header">
+          <h2>📋 申請管理</h2>
+          <p>申請中・申請予定の補助金を一覧で管理できます。</p>
+        </div>
+        <div class="section-actions" style="margin-bottom:16px;">
+          <button class="btn-primary-sm" id="btn-add-app">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            申請を追加
+          </button>
+        </div>
+        <div class="app-stats">
+          <div class="app-stat">
+            <div class="app-stat-num color-blue" id="app-stat-prep">—</div>
+            <div class="app-stat-label">準備中</div>
+          </div>
+          <div class="app-stat">
+            <div class="app-stat-num color-gold" id="app-stat-submitted">—</div>
+            <div class="app-stat-label">申請済み</div>
+          </div>
+          <div class="app-stat">
+            <div class="app-stat-num color-green" id="app-stat-approved">—</div>
+            <div class="app-stat-label">採択済み</div>
+          </div>
+          <div class="app-stat">
+            <div class="app-stat-num" style="color:var(--text)" id="app-stat-total">¥0</div>
+            <div class="app-stat-label">合計採択額</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="app-table">
+            <thead>
+              <tr>
+                <th>補助金・助成金名</th>
+                <th>ステータス</th>
+                <th>申請期限</th>
+                <th>採択額</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="app-tbody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- === 締切通知パネル === -->
+    <div class="panel" id="panel-notifications">
+      <div class="panel-content">
+        <div class="panel-header">
+          <h2>🔔 締切通知</h2>
+          <p>申請期限が近い補助金を管理し、通知の ON/OFF を設定できます。</p>
+        </div>
+        <div class="section-actions">
+          <button class="btn-primary-sm" id="btn-add-notif">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            補助金を追加
+          </button>
+        </div>
+        <div class="notif-list" id="notif-list-body">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- === API Key Modal === -->
+<div class="modal-overlay hidden" id="api-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon">🔑</div>
+      <div>
+        <h2>Google AI Studio APIキーの設定</h2>
+        <p>無料取得して、AIチャット機能を有効化</p>
+      </div>
+    </div>
+    <div class="api-link-row">
+      <p>Google AI Studioで無料アカウントを作成し、APIキーを発行してください。</p>
+      <a href="https://aistudio.google.com/apikey" target="_blank">
+        取得する →
+      </a>
+    </div>
+    <div class="modal-steps">
+      <div class="modal-step">
+        <div class="modal-step-num">1</div>
+        <div class="modal-step-body">
+          <p><a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a> にGoogleアカウントでログインします。クレジットカード不要・完全無料です。</p>
+        </div>
+      </div>
+      <div class="modal-step">
+        <div class="modal-step-num">2</div>
+        <div class="modal-step-body">
+          <p>「APIキーを作成」ボタンをクリックし、キーをコピーします。</p>
+        </div>
+      </div>
+      <div class="modal-step">
+        <div class="modal-step-num">3</div>
+        <div class="modal-step-body">
+          <p>下にAPIキーを貼り付けて「保存」するだけ。ブラウザに安全に保存されます。</p>
+        </div>
+      </div>
+    </div>
+    <div class="input-group">
+      <label>Google AI Studio APIキー</label>
+      <input type="password" id="api-key-input" placeholder="AIza..." />
+      <p class="input-hint">🔒 キーはこのブラウザにのみ保存されます。サーバーには送信されません。</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-ghost" onclick="closeApiModal()">キャンセル</button>
+      <button class="btn-modal-primary" onclick="saveApiKey()">保存して有効化</button>
+    </div>
+  </div>
+</div>
+
+<!-- === App Detail Modal === -->
+<div class="modal-overlay hidden" id="app-detail-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-icon">📋</div>
+      <div>
+        <h2 id="detail-name">補助金詳細</h2>
+        <p id="detail-org" style="font-size:.8rem;color:var(--muted)"></p>
+      </div>
+    </div>
+    <input type="hidden" id="detail-id" />
+    <div style="display:grid;gap:14px;">
+      <div class="input-group" style="margin:0;">
+        <label>ステータス</label>
+        <select id="detail-status" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;">
+          <option value="prep">準備中</option>
+          <option value="submitted">申請済み</option>
+          <option value="approved">採択済み</option>
+          <option value="rejected">不採択</option>
+        </select>
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>採択額（円）</label>
+        <input type="number" id="detail-amount" placeholder="例: 500000（採択済みの場合）" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>申請期限</label>
+        <input type="text" id="detail-deadline" placeholder="例: 2026/09/20" readonly style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface-2);outline:none;color:var(--muted);" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>公式URL</label>
+        <input type="url" id="detail-url" placeholder="https://..." style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>メモ</label>
+        <textarea id="detail-memo" rows="3" placeholder="必要書類・担当者名など自由に記入" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;resize:vertical;line-height:1.6;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn-modal-ghost" onclick="deleteApp()" style="color:var(--red);border-color:#FECACA;">🗑 削除</button>
+      <button class="btn-modal-ghost" onclick="closeAppDetail()">キャンセル</button>
+      <button class="btn-modal-primary" onclick="saveAppDetail()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- === Add App Modal === -->
+<div class="modal-overlay hidden" id="add-app-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-icon">➕</div>
+      <div>
+        <h2>申請を追加</h2>
+        <p>新しい補助金・助成金の申請を記録します</p>
+      </div>
+    </div>
+    <div style="display:grid;gap:14px;">
+      <div class="input-group" style="margin:0;">
+        <label>補助金・助成金名 <span style="color:var(--red)">*</span></label>
+        <input type="text" id="add-app-name" placeholder="例: ものづくり補助金" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>実施機関</label>
+        <input type="text" id="add-app-org" placeholder="例: 国・中小企業庁" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>申請期限</label>
+        <input type="date" id="add-app-deadline" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>ステータス</label>
+        <select id="add-app-status" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;">
+          <option value="prep">準備中</option>
+          <option value="submitted">申請済み</option>
+          <option value="approved">採択済み</option>
+        </select>
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>公式URL</label>
+        <input type="url" id="add-app-url" placeholder="https://..." style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn-modal-ghost" onclick="closeAddAppModal()">キャンセル</button>
+      <button class="btn-modal-primary" onclick="saveNewApp()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- === Add Notification Modal === -->
+<div class="modal-overlay hidden" id="add-notif-modal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <div class="modal-icon">🔔</div>
+      <div>
+        <h2>締切通知を追加</h2>
+        <p>期限が近づいたら表示でお知らせします</p>
+      </div>
+    </div>
+    <div style="display:grid;gap:14px;">
+      <div class="input-group" style="margin:0;">
+        <label>補助金・助成金名 <span style="color:var(--red)">*</span></label>
+        <input type="text" id="add-notif-name" placeholder="例: IT導入補助金 2026" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>実施機関</label>
+        <input type="text" id="add-notif-org" placeholder="例: 国・経済産業省" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>補助金額（目安）</label>
+        <input type="text" id="add-notif-amount" placeholder="例: 最大450万円" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+      <div class="input-group" style="margin:0;">
+        <label>申請期限 <span style="color:var(--red)">*</span></label>
+        <input type="date" id="add-notif-deadline" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.875rem;font-family:inherit;background:var(--surface);outline:none;" />
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:20px;">
+      <button class="btn-modal-ghost" onclick="closeAddNotifModal()">キャンセル</button>
+      <button class="btn-modal-primary" onclick="saveNewNotif()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- モバイル用ボトムナビ -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bottom-nav-item active" data-panel="chat" onclick="switchPanelMobile('chat',this)">
+    <span class="bn-icon">🤖</span>AI診断
+  </button>
+  <button class="bottom-nav-item" data-panel="favorites" onclick="switchPanelMobile('favorites',this)">
+    <span class="bn-icon">⭐</span>お気に入り
+    <span class="bottom-nav-badge" id="bn-fav-count" style="display:none"></span>
+  </button>
+  <button class="bottom-nav-item" data-panel="applications" onclick="switchPanelMobile('applications',this)">
+    <span class="bn-icon">📋</span>申請管理
+  </button>
+  <button class="bottom-nav-item" data-panel="notifications" onclick="switchPanelMobile('notifications',this)">
+    <span class="bn-icon">🔔</span>締切通知
+  </button>
+  <button class="bottom-nav-item" onclick="openApiModal()">
+    <span class="bn-icon">🔑</span>APIキー
+  </button>
+</nav>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDQ_h6ZfwiRhoQSyL2UjGOXLwM_aqHeqas",
+    authDomain: "aidgrant-417d2.firebaseapp.com",
+    projectId: "aidgrant-417d2",
+    storageBucket: "aidgrant-417d2.firebasestorage.app",
+    messagingSenderId: "888751970274",
+    appId: "1:888751970274:web:d8c2ab464b7e4229508bbb"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  document.getElementById("login-btn").onclick = () =>
+    signInWithPopup(auth, provider).catch(e => alert("ログイン失敗: " + e.message));
+  document.getElementById("logout-btn").onclick = () => signOut(auth);
+
+  onAuthStateChanged(auth, user => {
+    const gate = document.getElementById("login-gate");
+    const dash = document.getElementById("dashboard");
+    const userInfo = document.getElementById("user-info");
+
+    if (user) {
+      const isFirstLogin = !sessionStorage.getItem("aidgrant_welcomed");
+      gate.style.display = "none";
+      dash.style.display = "flex";
+      userInfo.style.display = "flex";
+      const displayName = user.displayName?.split(/[\s　]/)[0] || "さん";
+      document.getElementById("user-name").textContent = user.displayName || user.email;
+      document.getElementById("user-avatar").src = user.photoURL || "";
+      window._userName = displayName;
+      if (isFirstLogin) {
+        sessionStorage.setItem("aidgrant_welcomed", "1");
+        // showToastは別scriptで定義されるためDOMContentLoaded後に呼ぶ
+        setTimeout(() => {
+          if (typeof showToast === "function") showToast(`👋 おかえり、${displayName}さん！`);
+        }, 600);
+      }
+    } else {
+      gate.style.display = "flex";
+      dash.style.display = "none";
+      userInfo.style.display = "none";
+    }
+  });
+</script>
+
+<script>
+  // ══════════════════════════════════════════════
+  // ── API Key Management ──
+  // ══════════════════════════════════════════════
+  function updateApiStatusUI() {
+    const key = localStorage.getItem("aidgrant_api_key");
+    const btn = document.getElementById("api-status-btn");
+    const txt = document.getElementById("api-status-text");
+    if (key && key.length > 10) {
+      btn.className = "nav-api-status api-status-ok";
+      txt.textContent = "APIキー設定済み";
+    } else {
+      btn.className = "nav-api-status api-status-none";
+      txt.textContent = "APIキー未設定";
+    }
+  }
+  window.openApiModal = function() {
+    const key = localStorage.getItem("aidgrant_api_key") || "";
+    document.getElementById("api-key-input").value = key;
+    document.getElementById("api-modal").classList.remove("hidden");
+  };
+  window.closeApiModal = function() {
+    document.getElementById("api-modal").classList.add("hidden");
+  };
+  window.saveApiKey = function() {
+    const key = document.getElementById("api-key-input").value.trim();
+    if (!key) { alert("APIキーを入力してください。"); return; }
+    if (key.length < 10) { alert("有効なGoogle AI StudioのAPIキーを入力してください。"); return; }
+    localStorage.setItem("aidgrant_api_key", key);
+    closeApiModal();
+    updateApiStatusUI();
+    showToast("✅ APIキーを保存しました");
+  };
+  document.getElementById("api-modal").addEventListener("click", e => {
+    if (e.target === document.getElementById("api-modal")) closeApiModal();
+  });
+  updateApiStatusUI();
+
+  // ── Toast Notification ──
+  function showToast(msg, type = "success") {
+    const t = document.createElement("div");
+    t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;background:${type==="error"?"var(--red)":"var(--green)"};color:#fff;padding:12px 20px;border-radius:10px;font-size:.85rem;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.15);animation:slide-in .2s ease;`;
+    t.textContent = msg;
+    const style = document.createElement("style");
+    style.textContent = `@keyframes slide-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}`;
+    document.head.appendChild(style);
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  // ══════════════════════════════════════════════
+  // ── Sidebar Navigation ──
+  // ══════════════════════════════════════════════
+  const sidebarItems = document.querySelectorAll(".sidebar-item[data-panel]");
+  sidebarItems.forEach(item => {
+    item.addEventListener("click", () => {
+      sidebarItems.forEach(i => i.classList.remove("active"));
+      item.classList.add("active");
+      const panelId = "panel-" + item.dataset.panel;
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      document.getElementById(panelId)?.classList.add("active");
+    });
+  });
+
+  // ══════════════════════════════════════════════
+  // ── Favorites (LocalStorage永続化) ──
+  // ══════════════════════════════════════════════
+  function loadFavData() {
+    try {
+      return JSON.parse(localStorage.getItem("aidgrant_favorites") || "null") || [];
+    } catch(e) { return []; }
+  }
+  let favData = loadFavData();
+  function saveFavData() {
+    localStorage.setItem("aidgrant_favorites", JSON.stringify(favData));
+  }
+
+  function renderFavorites() {
+    const grid = document.getElementById("fav-grid");
+    document.getElementById("fav-count").textContent = favData.length;
+    if (favData.length === 0) {
+      grid.innerHTML = `<div class="fav-empty" style="grid-column:1/-1"><div class="fav-empty-icon">⭐</div><h3>お気に入りはまだありません</h3><p>AIチャットで補助金を探して、気になるものを保存しましょう。</p></div>`;
+      return;
+    }
+    grid.innerHTML = favData.map(f => `
+      <div class="fav-card">
+        <div class="fav-card-top">
+          <span class="fav-tag ${f.tagClass}">${f.tag}</span>
+          <span style="font-size:.72rem;color:var(--muted)">📅 ${f.deadline}</span>
+        </div>
+        <h3>${f.name}</h3>
+        <div class="fav-card-meta">
+          <span>🏛 ${f.org || f.category || "—"}</span>
+          <span>💰 ${f.amount}</span>
+        </div>
+        <div class="fav-card-actions">
+          <button class="btn-sm btn-sm-primary" onclick="switchToChat('${f.name.replace(/'/g,"\\'")}について詳しく教えて')">AIに聞く</button>
+          <button class="btn-sm btn-sm-ghost" onclick="window.open('${f.url||"#"}','_blank')">公式サイト</button>
+          <button class="btn-sm btn-sm-danger" onclick="removeFav(${f.id})">削除</button>
+        </div>
+      </div>
+    `).join("");
+  }
+  window.removeFav = function(id) {
+    const idx = favData.findIndex(f => f.id === id);
+    if (idx !== -1) { favData.splice(idx, 1); saveFavData(); renderFavorites(); showToast("⭐ お気に入りを削除しました"); }
+  };
+  window.addFav = function(name, category, amount, deadline, tag, tagClass, url) {
+    if (favData.some(f => f.name === name)) { showToast("すでにお気に入りに追加済みです", "error"); return; }
+    const id = Date.now();
+    favData.push({ id, name, org: category, amount, deadline, tag, tagClass, url: url || "#" });
+    saveFavData();
+    renderFavorites();
+    showToast("⭐ お気に入りに追加しました！");
+  };
+  renderFavorites();
+
+  // ══════════════════════════════════════════════
+  // ── Applications Panel (申請管理 完全実装) ──
+  // ══════════════════════════════════════════════
+  function loadAppData() {
+    try {
+      return JSON.parse(localStorage.getItem("aidgrant_applications") || "null") || [];
+    } catch(e) { return []; }
+  }
+  let appData = loadAppData();
+  function saveAppData() { localStorage.setItem("aidgrant_applications", JSON.stringify(appData)); }
+
+  const STATUS_MAP = {
+    prep:      { label: "準備中", cls: "sb-prep" },
+    submitted: { label: "申請済み", cls: "sb-submitted" },
+    approved:  { label: "採択済み", cls: "sb-approved" },
+    rejected:  { label: "不採択", cls: "sb-rejected" },
+  };
+
+  function renderApplications() {
+    const stats = { prep: 0, submitted: 0, approved: 0, rejected: 0, total: 0 };
+    appData.forEach(a => {
+      stats[a.status] = (stats[a.status] || 0) + 1;
+      if (a.status === "approved" && a.amount) stats.total += a.amount;
+    });
+    document.getElementById("app-stat-prep").textContent = stats.prep;
+    document.getElementById("app-stat-submitted").textContent = stats.submitted;
+    document.getElementById("app-stat-approved").textContent = stats.approved;
+    document.getElementById("app-stat-total").textContent = stats.total > 0 ? "¥" + stats.total.toLocaleString() : "¥0";
+
+    const tbody = document.getElementById("app-tbody");
+    if (appData.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:56px 20px;color:var(--muted);font-size:.875rem;">📋 申請中の補助金はありません。<br /><br /><button onclick="openAddAppModal()" style="background:var(--blue);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;margin-top:8px;">＋ 申請を追加する</button></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = appData.map(a => {
+      const s = STATUS_MAP[a.status] || STATUS_MAP.prep;
+      return `<tr>
+        <td><strong>${a.name}</strong><br /><span style="font-size:.75rem;color:var(--muted)">${a.org}</span></td>
+        <td>
+          <select class="status-select" onchange="changeAppStatus(${a.id}, this.value)" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.78rem;font-weight:700;background:var(--surface);cursor:pointer;color:var(--text)">
+            <option value="prep" ${a.status==="prep"?"selected":""}>準備中</option>
+            <option value="submitted" ${a.status==="submitted"?"selected":""}>申請済み</option>
+            <option value="approved" ${a.status==="approved"?"selected":""}>採択済み</option>
+            <option value="rejected" ${a.status==="rejected"?"selected":""}>不採択</option>
+          </select>
+        </td>
+        <td>${a.deadline}</td>
+        <td class="app-amount">${a.amount ? "¥"+a.amount.toLocaleString() : "—"}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn-sm btn-sm-primary" onclick="openAppDetail(${a.id})">詳細</button>
+          <button class="btn-sm btn-sm-ghost" onclick="window.open('${a.url||"#"}','_blank')">公式</button>
+        </td>
+      </tr>`;
+    }).join("");
+  }
+
+  window.changeAppStatus = function(id, newStatus) {
+    const app = appData.find(a => a.id === id);
+    if (!app) return;
+    app.status = newStatus;
+    saveAppData();
+    renderApplications();
+    showToast("✅ ステータスを更新しました");
+  };
+
+  window.openAppDetail = function(id) {
+    const app = appData.find(a => a.id === id);
+    if (!app) return;
+    document.getElementById("detail-name").textContent = app.name;
+    document.getElementById("detail-org").textContent = app.org;
+    document.getElementById("detail-deadline").textContent = app.deadline;
+    document.getElementById("detail-status").value = app.status;
+    document.getElementById("detail-amount").value = app.amount || "";
+    document.getElementById("detail-memo").value = app.memo || "";
+    document.getElementById("detail-url").value = app.url || "";
+    document.getElementById("detail-id").value = id;
+    document.getElementById("app-detail-modal").classList.remove("hidden");
+  };
+
+  window.closeAppDetail = function() {
+    document.getElementById("app-detail-modal").classList.add("hidden");
+  };
+  document.getElementById("app-detail-modal").addEventListener("click", e => {
+    if (e.target === document.getElementById("app-detail-modal")) closeAppDetail();
+  });
+
+  window.saveAppDetail = function() {
+    const id = parseInt(document.getElementById("detail-id").value);
+    const app = appData.find(a => a.id === id);
+    if (!app) return;
+    app.status = document.getElementById("detail-status").value;
+    const amt = document.getElementById("detail-amount").value.replace(/[¥,]/g,"");
+    app.amount = amt ? parseInt(amt) : null;
+    app.memo = document.getElementById("detail-memo").value;
+    app.url = document.getElementById("detail-url").value;
+    saveAppData();
+    renderApplications();
+    closeAppDetail();
+    showToast("✅ 申請情報を保存しました");
+  };
+
+  window.deleteApp = function() {
+    const id = parseInt(document.getElementById("detail-id").value);
+    if (!confirm("この申請情報を削除しますか？")) return;
+    const idx = appData.findIndex(a => a.id === id);
+    if (idx !== -1) { appData.splice(idx, 1); saveAppData(); renderApplications(); closeAppDetail(); showToast("🗑 削除しました"); }
+  };
+
+  window.openAddAppModal = function() {
+    document.getElementById("add-app-modal").classList.remove("hidden");
+    document.getElementById("add-app-name").value = "";
+    document.getElementById("add-app-org").value = "";
+    document.getElementById("add-app-deadline").value = "";
+    document.getElementById("add-app-status").value = "prep";
+    document.getElementById("add-app-url").value = "";
+  };
+  window.closeAddAppModal = function() {
+    document.getElementById("add-app-modal").classList.add("hidden");
+  };
+  document.getElementById("add-app-modal").addEventListener("click", e => {
+    if (e.target === document.getElementById("add-app-modal")) closeAddAppModal();
+  });
+  window.saveNewApp = function() {
+    const name = document.getElementById("add-app-name").value.trim();
+    if (!name) { alert("補助金名を入力してください。"); return; }
+    const rawDeadline = document.getElementById("add-app-deadline").value;
+    const deadline = rawDeadline ? rawDeadline.replace(/-/g, "/") : "未設定";
+    const newApp = {
+      id: Date.now(),
+      name,
+      org: document.getElementById("add-app-org").value.trim() || "未設定",
+      deadline,
+      status: document.getElementById("add-app-status").value,
+      amount: null, memo: "",
+      url: document.getElementById("add-app-url").value.trim(),
+    };
+    appData.unshift(newApp);
+    saveAppData();
+    renderApplications();
+    closeAddAppModal();
+    showToast("✅ 申請を追加しました");
+  };
+
+  renderApplications();
+
+  // ══════════════════════════════════════════════
+  // ── Notifications Panel (締切通知 完全実装) ──
+  // ══════════════════════════════════════════════
+  function loadNotifData() {
+    try {
+      return JSON.parse(localStorage.getItem("aidgrant_notifications") || "null") || [];
+    } catch(e) { return []; }
+  }
+  let notifData = loadNotifData();
+  function saveNotifData() { localStorage.setItem("aidgrant_notifications", JSON.stringify(notifData)); }
+
+  function daysUntil(dateStr) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const parts = dateStr.split("/");
+    if (parts.length < 3) return 999;
+    const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    return Math.round((d - today) / 86400000);
+  }
+
+  function renderNotifications() {
+    const list = document.getElementById("notif-list-body");
+    if (notifData.length === 0) {
+      list.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--muted)">🔔 通知登録中の補助金はありません</div>`;
+      return;
+    }
+    const sorted = [...notifData].sort((a,b) => daysUntil(a.deadline) - daysUntil(b.deadline));
+    list.innerHTML = sorted.map(n => {
+      const days = daysUntil(n.deadline);
+      const urgency = days <= 7 ? "u-urgent" : days <= 30 ? "u-soon" : "u-ok";
+      const daysColor = days <= 7 ? "color-red" : days <= 30 ? "color-gold" : "color-green";
+      const daysLabel = days < 0 ? "締切済み" : days === 0 ? "本日締切！" : `${days}日後`;
+      return `
+        <div class="notif-item">
+          <div class="notif-urgency ${urgency}"></div>
+          <div class="notif-body">
+            <h4>${n.name}</h4>
+            <p>${n.org} ／ ${n.amount}</p>
+          </div>
+          <div class="notif-deadline">
+            <div class="deadline-days ${daysColor}">${daysLabel}</div>
+            <div class="deadline-label">${n.deadline} 締切</div>
+          </div>
+          <button class="notif-toggle ${n.on?"":"off"}" title="${n.on?"通知ON":"通知OFF"}" onclick="toggleNotif(${n.id})"></button>
+          <button onclick="removeNotif(${n.id})" style="background:none;border:none;font-size:1rem;cursor:pointer;color:var(--muted-light);padding:4px;" title="削除">✕</button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  window.toggleNotif = function(id) {
+    const n = notifData.find(x => x.id === id);
+    if (!n) return;
+    n.on = !n.on;
+    saveNotifData();
+    renderNotifications();
+    showToast(n.on ? "🔔 通知をONにしました" : "🔕 通知をOFFにしました");
+  };
+  window.removeNotif = function(id) {
+    const idx = notifData.findIndex(x => x.id === id);
+    if (idx !== -1) { notifData.splice(idx, 1); saveNotifData(); renderNotifications(); showToast("🗑 削除しました"); }
+  };
+
+  window.openAddNotifModal = function() {
+    document.getElementById("add-notif-modal").classList.remove("hidden");
+    document.getElementById("add-notif-name").value = "";
+    document.getElementById("add-notif-org").value = "";
+    document.getElementById("add-notif-amount").value = "";
+    document.getElementById("add-notif-deadline").value = "";
+  };
+  window.closeAddNotifModal = function() {
+    document.getElementById("add-notif-modal").classList.add("hidden");
+  };
+  document.getElementById("add-notif-modal").addEventListener("click", e => {
+    if (e.target === document.getElementById("add-notif-modal")) closeAddNotifModal();
+  });
+  window.saveNewNotif = function() {
+    const name = document.getElementById("add-notif-name").value.trim();
+    if (!name) { alert("補助金名を入力してください。"); return; }
+    const deadline = document.getElementById("add-notif-deadline").value;
+    if (!deadline) { alert("申請期限を入力してください。"); return; }
+    // convert date input (YYYY-MM-DD) to YYYY/MM/DD
+    const dl = deadline.replace(/-/g, "/");
+    notifData.push({
+      id: Date.now(),
+      name,
+      org: document.getElementById("add-notif-org").value.trim() || "未設定",
+      amount: document.getElementById("add-notif-amount").value.trim() || "—",
+      deadline: dl,
+      on: true,
+    });
+    saveNotifData();
+    renderNotifications();
+    closeAddNotifModal();
+    showToast("🔔 締切通知を追加しました");
+  };
+
+  renderNotifications();
+
+  // ── Notification btn wiring ──
+  document.getElementById("btn-add-app").addEventListener("click", openAddAppModal);
+  document.getElementById("btn-add-notif").addEventListener("click", openAddNotifModal);
+
+  // ══════════════════════════════════════════════
+  // ── Chat ──
+  // ══════════════════════════════════════════════
+  const messagesEl = document.getElementById("messages");
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("send-btn");
+  const history = [];
+
+  function switchToChat(text) {
+    document.querySelectorAll(".sidebar-item[data-panel]").forEach(i => i.classList.remove("active"));
+    document.querySelector('[data-panel="chat"]').classList.add("active");
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    document.getElementById("panel-chat").classList.add("active");
+    sendMessage(text);
+  }
+  window.switchToChat = switchToChat;
+
+  function addMessage(role, html) {
+    const isUser = role === "user";
+    const div = document.createElement("div");
+    div.className = `msg ${isUser ? "user" : "ai"}`;
+    const avatar = document.createElement("div");
+    avatar.className = isUser ? "msg-avatar user-av" : "msg-avatar";
+    if (isUser) {
+      const img = document.createElement("img");
+      img.src = document.getElementById("user-avatar")?.src || "";
+      avatar.appendChild(img);
+    } else {
+      avatar.textContent = "🤖";
+    }
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = html;
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return bubble;
+  }
+
+  function showTyping() {
+    const div = document.createElement("div");
+    div.className = "msg ai";
+    div.id = "typing-indicator";
+    div.innerHTML = `<div class="msg-avatar">🤖</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function removeTyping() { document.getElementById("typing-indicator")?.remove(); }
+
+  async function sendMessage(text) {
+    if (!text.trim()) return;
+
+    const apiKey = localStorage.getItem("aidgrant_api_key");
+    if (!apiKey || apiKey.length < 10) {
+      addMessage("ai", `⚠️ <strong>APIキーが設定されていません。</strong><br />右上の「APIキー未設定」ボタン、またはサイドバーの「APIキー設定」からGoogle AI StudioのAPIキーを設定してください。<br /><br /><a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--blue);font-weight:700;">🔑 無料でAPIキーを取得 →</a>`);
+      return;
+    }
+
+    sendBtn.disabled = true;
+    input.value = "";
+    input.style.height = "auto";
+    addMessage("user", text);
+    history.push({ role: "user", parts: [{ text }] });
+    showTyping();
+
+    const systemPrompt = `あなたはAidGrantのAI補助金アシスタントです。日本の補助金・助成金・給付金の専門家として、ユーザーが利用できる支援制度を見つけるお手伝いをします。
+回答は必ず日本語で、やさしくわかりやすく説明してください。
+具体的な補助金名・金額・対象者・申請期限などを盛り込んでください。
+HTMLタグを使って改行（<br>）や強調（<strong>）を使って読みやすく整形してください。
+
+補助金を複数紹介する場合は、以下の形式でお気に入りボタンを各補助金の後に付けてください（name/category/amount/deadline/tag/url を実際の値に置き換えてください）：
+<button class="chip" style="margin-top:8px;background:var(--gold-light);color:var(--gold);border:1px solid #FDE68A;" onclick="addFav('補助金名','実施機関','金額','YYYY/MM/DD','カテゴリ','ft-gold','公式URL')">⭐ お気に入りに追加</button>
+
+回答の最後に、ユーザーが次に聞けそうな質問を2〜3個提案してください。以下の形式で出力してください（質問内容には実際の質問を入れること）：
+<div class="chip-row"><span class="chip" onclick="sendQuick('申請に必要な書類を教えてください')">申請に必要な書類を教えてください</span><span class="chip" onclick="sendQuick('申請の締切はいつですか？')">申請の締切はいつですか？</span></div>`;
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: history,
+            generationConfig: { maxOutputTokens: 1500 }
+          })
+        }
+      );
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+      const reply = data.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "申し訳ありません、回答を取得できませんでした。";
+      removeTyping();
+      history.push({ role: "model", parts: [{ text: reply }] });
+      addMessage("ai", reply);
+    } catch (e) {
+      removeTyping();
+      addMessage("ai", `通信エラーが発生しました。<br /><strong>${e.message}</strong><br />APIキーが正しいか確認してください。`);
+    }
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  window.sendQuick = (text) => sendMessage(text);
+  sendBtn.onclick = () => sendMessage(input.value);
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input.value); }
+  });
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 120) + "px";
+  });
+
+  // ── チャット履歴クリア ──
+  const WELCOME_HTML = `<div class="msg ai"><div class="msg-avatar">🤖</div><div class="bubble">こんにちは！AidGrant AIアシスタントです。<br />あなたに合った補助金・助成金を一緒に探しましょう。<br /><br />まず、どんな状況か教えてください👇<div class="chip-row"><span class="chip" onclick="sendQuick('個人事業主として開業したい')">個人事業主として開業したい</span><span class="chip" onclick="sendQuick('中小企業の設備投資をしたい')">中小企業の設備投資をしたい</span><span class="chip" onclick="sendQuick('学生・個人として支援を探したい')">学生・個人として支援を探したい</span><span class="chip" onclick="sendQuick('IT・デジタル化の補助金を探したい')">IT・デジタル化の補助金を探したい</span></div></div></div>`;
+
+  document.getElementById("clear-chat-btn").addEventListener("click", () => {
+    if (!confirm("チャット履歴をクリアしますか？")) return;
+    history.length = 0;
+    messagesEl.innerHTML = WELCOME_HTML;
+    showToast("🗑 チャット履歴をクリアしました");
+  });
+
+  // ── ハンバーガーメニュー（モバイル） ──
+  const hamburgerBtn = document.getElementById("hamburger-btn");
+  const sidebar = document.querySelector(".sidebar");
+  const sidebarOverlay = document.getElementById("sidebar-overlay");
+  function openSidebar() {
+    sidebar.classList.add("open");
+    sidebarOverlay.classList.add("open");
+  }
+  function closeSidebar() {
+    sidebar.classList.remove("open");
+    sidebarOverlay.classList.remove("open");
+  }
+  hamburgerBtn?.addEventListener("click", () => {
+    sidebar.classList.contains("open") ? closeSidebar() : openSidebar();
+  });
+  sidebarOverlay?.addEventListener("click", closeSidebar);
+
+  // ── ボトムナビ（モバイル）──
+  window.switchPanelMobile = function(panelId, btn) {
+    // サイドバーの active も同期
+    document.querySelectorAll(".sidebar-item[data-panel]").forEach(i => i.classList.remove("active"));
+    document.querySelector(`.sidebar-item[data-panel="${panelId}"]`)?.classList.add("active");
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    document.getElementById("panel-" + panelId)?.classList.add("active");
+    // ボトムナビの active
+    document.querySelectorAll(".bottom-nav-item").forEach(i => i.classList.remove("active"));
+    btn.classList.add("active");
+    closeSidebar();
+  };
+
+  // ボトムナビのバッジをお気に入り数と同期
+  function syncFavBadge() {
+    const badge = document.getElementById("bn-fav-count");
+    if (!badge) return;
+    const count = favData.length;
+    badge.textContent = count;
+    badge.style.display = count > 0 ? "flex" : "none";
+  }
+  const _favObserver = new MutationObserver(syncFavBadge);
+  _favObserver.observe(document.getElementById("fav-grid"), { childList: true });
+  syncFavBadge();
+
+  // サイドバーのパネル切り替え時にボトムナビも同期
+  sidebarItems.forEach(item => {
+    item.addEventListener("click", () => {
+      const p = item.dataset.panel;
+      document.querySelectorAll(".bottom-nav-item[data-panel]").forEach(b => {
+        b.classList.toggle("active", b.dataset.panel === p);
+      });
+      closeSidebar();
+    });
+  });
+</script>
+</body>
+</html>
